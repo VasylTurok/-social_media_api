@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
 from django.utils.translation import gettext as _
 from social_media.models import Post, Comment, Profile
-from social_media.tasks import create_scheduled_post
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -73,26 +72,6 @@ class PostSerializer(serializers.ModelSerializer):
         user = self.context["request"].user.profile
         attrs["author"] = user
         return attrs
-
-    def create(self, validated_data) -> dict:
-        scheduled_time = validated_data.get("scheduled_time")
-
-        if scheduled_time:
-            create_scheduled_post.apply_async(
-                args=[
-                    validated_data["title"],
-                    validated_data["content"],
-                    validated_data["author"],
-                    scheduled_time,
-                    validated_data["post_image"],
-                ],
-                eta=scheduled_time,
-            )
-
-            return validated_data
-
-        post = Post.objects.create(**validated_data)
-        return post
 
 
 class PostListSerializer(serializers.ModelSerializer):
