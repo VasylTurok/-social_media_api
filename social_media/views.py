@@ -9,7 +9,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from social_media.models import Profile, Post
-from social_media.permissions import IsProfileOwner, IsPostOwner
+from social_media.permissions import (
+    IsProfileOwnerOrGetMethod,
+    IsPostOwnerOrGetMethod
+)
 from social_media.serializers import (
     ProfileListSerializer,
     ProfileDetailSerializer,
@@ -23,7 +26,7 @@ from social_media.serializers import (
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, IsProfileOwner]
+    permission_classes = [IsAuthenticated, IsProfileOwnerOrGetMethod]
     serializer_class = ProfileSerializer
 
     def get_queryset(self) -> QuerySet:
@@ -81,7 +84,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, IsPostOwner]
+    permission_classes = [IsAuthenticated, IsPostOwnerOrGetMethod]
 
     def get_queryset(self) -> QuerySet:
         queryset = (
@@ -119,7 +122,7 @@ class PostViewSet(viewsets.ModelViewSet):
         methods=["POST"],
         detail=True,
         url_path="upload_image",
-        permission_classes=[IsAuthenticated, IsPostOwner]
+        permission_classes=[IsAuthenticated, IsPostOwnerOrGetMethod]
     )
     def upload_image(self, request: Request, pk: int = None) -> Response:
         post = self.get_object()
