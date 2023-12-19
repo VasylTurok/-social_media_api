@@ -52,18 +52,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
     )
     def follow(self, request: Request, pk: int = None) -> Response:
         profile = self.get_object()
-        user_profile = self.request.user.profile
-
-        if user_profile != profile and profile not in user_profile.following.all():
-            user_profile.follow(profile)
-            return Response(
-                {"detail": "Profile followed successfully"},
-                status=status.HTTP_200_OK
-            )
-        return Response(
-            {"detail": "Unable to follow the profile"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        serializer = self.get_serializer(profile)
+        serializer.follow()
+        return serializer.follow_response()
 
     @action(
         methods=["POST"],
@@ -72,19 +63,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
     )
     def unfollow(self, request: Request, pk: int = None) -> Response:
         profile = self.get_object()
-        user_profile = self.request.user.profile
-
-        if user_profile != profile and profile in user_profile.following.all():
-            user_profile.unfollow(profile)
-            return Response(
-                {"detail": "Profile unfollowed successfully"},
-                status=status.HTTP_200_OK
-            )
-
-        return Response(
-            {"detail": "Unable to unfollow the profile"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        serializer = self.get_serializer(profile)
+        serializer.unfollow()
+        return serializer.unfollow_response()
 
     @extend_schema(
         parameters=[

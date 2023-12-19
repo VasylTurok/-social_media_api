@@ -16,10 +16,30 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ("username", "profile_image", "biography")
 
-        def validate(self, attrs) -> dict:
-            user = self.context["request"].user
-            attrs["user"] = user
-            return attrs
+    def validate(self, attrs):
+        user = self.context["request"].user
+        profile = self.instance
+
+        if profile and profile == user.profile:
+            raise serializers.ValidationError("You cannot follow yourself.")
+        if profile and profile in user.profile.following.all():
+            raise serializers.ValidationError("You are already following this profile.")
+
+        return attrs
+
+    def follow(self, target_profile):
+        user_profile = self.context["request"].user.profile
+        if user_profile != target_profile and target_profile not in user_profile.following.all():
+            user_profile.follow(target_profile)
+        else:
+            raise serializers.ValidationError("Unable to follow the profile.")
+
+    def unfollow(self, target_profile):
+        user_profile = self.context["request"].user.profile
+        if user_profile != target_profile and target_profile in user_profile.following.all():
+            user_profile.unfollow(target_profile)
+        else:
+            raise serializers.ValidationError("Unable to unfollow the profile.")
 
 
 class ProfileListSerializer(ProfileSerializer):
